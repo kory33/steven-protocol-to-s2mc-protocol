@@ -28,7 +28,7 @@ object ProtocolParser extends RegexParsers {
       _ <- """\s*field """.r
       fieldName <- """\w+""".r
       _ <- literal(": ")
-      typeName <- """[^=]+(?=\s*=)""".r
+      typeName <- """[^=]+(?= =)""".r
       _ <- literal("=")
       conditionLambda <- opt(not(literal(",")) ~> literal("when(") ~> """[^\)]+""".r <~ literal(")"))
       _ <- literal(",")

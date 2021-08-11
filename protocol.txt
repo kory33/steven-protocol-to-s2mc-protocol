@@ -69,7 +69,7 @@
                 field action_id: VarInt =,
             }
             packet ClientStatus_u8 {
-                field action_id: u8=,
+                field action_id: u8 =,
             }
             /// ClientSettings is sent by the client to update its current settings.
             packet ClientSettings {
@@ -1152,7 +1152,7 @@
                 field particle_id: i32 =,
                 field long_distance: bool =,
                 field x: f64 =,
-                field y: f64=,
+                field y: f64 =,
                 field z: f64 =,
                 field offset_x: f32 =,
                 field offset_y: f32 =,
