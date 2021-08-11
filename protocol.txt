@@ -342,7 +342,8 @@
             }
             /// SetRecipeBookState replaces CraftingBookData, type 1.
             packet SetRecipeBookState {
-                field book_id: VarInt =, // TODO: enum, 0: crafting, 1: furnace, 2: blast furnace, 3: smoker
+                /// TODO: enum, 0: crafting, 1: furnace, 2: blast furnace, 3: smoker
+                field book_id: VarInt =,
                 field book_open: bool =,
                 field filter_active: bool =,
             }
@@ -358,7 +359,7 @@
                 field hash: String =,
                 field result: VarInt =,
             }
-            // TODO: Document
+            /// TODO: Document
             packet AdvancementTab {
                 field action: VarInt =,
                 field tab_id: String = when(|p: &AdvancementTab| p.action.0 == 0),
@@ -499,7 +500,8 @@
                 field cursor_x: f32 =,
                 field cursor_y: f32 =,
                 field cursor_z: f32 =,
-                field inside_block: bool =, //1.14 added insideblock
+                /// 1.14 added insideblock
+                field inside_block: bool =,
             }
 
             /// UseItem is sent when the client tries to use an item.
@@ -554,7 +556,8 @@
             packet SpawnObject_VarInt {
                 field entity_id: VarInt =,
                 field uuid: UUID =,
-                field ty: VarInt =, //1.14 changed u8 to VarInt
+                /// 1.14 changed u8 to VarInt
+                field ty: VarInt =,
                 field x: f64 =,
                 field y: f64 =,
                 field z: f64 =,
@@ -2011,13 +2014,12 @@
             }
             packet Advancements {
                 field data: Vec<u8> =,
-                /* TODO: fix parsing modded advancements 1.12.2 (e.g. SevTech Ages)
-                 * see https://github.com/iceiix/stevenarella/issues/148
-                field reset_clear: bool =,
-                field mapping: LenPrefixed<VarInt, packet::Advancement> =,
-                field identifiers: LenPrefixed<VarInt, String> =,
-                field progress: LenPrefixed<VarInt, packet::AdvancementProgress> =,
-                */
+                /// TODO: fix parsing modded advancements 1.12.2 (e.g. SevTech Ages)
+                /// see https://github.com/iceiix/stevenarella/issues/148
+                /// field reset_clear: bool =,
+                /// field mapping: LenPrefixed<VarInt, packet::Advancement> =,
+                /// field identifiers: LenPrefixed<VarInt, String> =,
+                /// field progress: LenPrefixed<VarInt, packet::AdvancementProgress> =,
             }
             /// EntityProperties updates the properties for an entity.
             packet EntityProperties {
@@ -2200,7 +2202,7 @@
             /// The Status should contain a json encoded structure with
             /// version information, a player sample, a description/MOTD
             /// and optionally a favicon.
-            //
+            ///
             /// The structure is as follows
             ///
             /// ```json
