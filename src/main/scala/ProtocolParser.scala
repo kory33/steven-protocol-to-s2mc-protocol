@@ -31,7 +31,6 @@ object ProtocolParser extends RegexParsers {
       typeName <- """[^=]+(?=\s*=)""".r
       _ <- literal("=")
       conditionLambda <- opt(not(literal(",")) ~> literal("when(") ~> """[^\)]+""".r <~ literal(")"))
-      _ = println(s"field : ${fieldName}, type : ${typeName}, lambda : ${conditionLambda}")
       _ <- literal(",")
     } yield FieldDefinition(fieldName, typeName, conditionLambda)
 
