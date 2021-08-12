@@ -8,6 +8,8 @@ import scala.util.parsing.combinator.RegexParsers
 
 object ProtocolParser extends RegexParsers {
 
+  override val skipWhitespace = false
+
   // region utility combinators
   def bracketedList[I, C](initiator: Parser[I], content: Parser[C]): Parser[(I, C)] =
     for {
@@ -25,12 +27,11 @@ object ProtocolParser extends RegexParsers {
 
   val fieldDefinition: Parser[FieldDefinition] =
     for {
-      _ <- """\s*field """.r
-      fieldName <- """\w+""".r
-      _ <- literal(": ")
-      typeName <- """[^=]+(?= =)""".r
-      _ <- literal("=")
-      conditionLambda <- opt(not(literal(",")) ~> literal("when(") ~> """[^\)]+""".r <~ literal(")"))
+      fieldName <- """\s*field """.r ~> """\w+""".r
+      typeName <- literal(": ") ~> """[^=]+(?= =)""".r <~ literal(" =")
+      conditionLambda <- opt {
+        not(literal(",")) ~> literal(" when(") ~> """[^\)]+""".r <~ literal(")")
+      }
       _ <- literal(",")
     } yield FieldDefinition(fieldName, typeName, conditionLambda)
 
@@ -43,8 +44,8 @@ object ProtocolParser extends RegexParsers {
     }
 
   val packetTarget: Parser[PacketTarget] =
-    """serverbound Serverbound""".r.map(_ => ServerBound) |
-    """clientbound Clientbound""".r.map(_ => ServerBound)
+    literal("serverbound Serverbound").map(_ => ServerBound) |
+    literal("clientbound Clientbound").map(_ => ServerBound)
 
   val targetDefinition: Parser[TargetDefinition] =
     val mappedCommentParser = aggregatedComment.map(PacketComment(_))
@@ -53,15 +54,16 @@ object ProtocolParser extends RegexParsers {
     }
 
   val connectionState: Parser[ConnectionState] =
-    """\w+ """.r ~> """(Handshaking|Status|Login|Play)""".r ^? (
-      {
-        case "Handshaking" => ConnectionState.Handshaking
-        case "Status" => ConnectionState.Status
-        case "Login" => ConnectionState.Login
-        case "Play" => ConnectionState.Play
-      },
-      s => s"Unexpected state name ${s}"
-    )
+    import ConnectionState._
+
+    val List(handshaking, status, login, play) = List(
+      "Handshaking" -> Handshaking,
+      "Status" -> Status,
+      "Login" -> Login,
+      "Play" -> Play
+    ).map { case (str, state) => literal(str).map(_ => state) }
+
+    """\w+ """.r ~> (handshaking | status | login | play)
 
   val stateDefinition: Parser[StateDefinition] =
     bracketedList(connectionState, repVector(targetDefinition)).map {
