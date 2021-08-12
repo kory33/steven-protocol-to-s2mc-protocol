@@ -2,9 +2,13 @@ package com.github.kory33.s2mctest.protocolconversion
 
 import cats.kernel.Monoid
 
+enum FieldType:
+  case Known(counterpartName: String)
+  case Raw(raw: String)
+
 enum FieldDefinitionSection:
   case FieldComment(lines: Vector[String])
-  case FieldDefinition(fieldName: String, typeName: String, fieldConditionLambda: Option[String])
+  case FieldDefinition(fieldName: String, typeName: FieldType, fieldConditionLambda: Option[String])
 
 enum PacketDefinitionSection:
   case PacketComment(lines: Vector[String])

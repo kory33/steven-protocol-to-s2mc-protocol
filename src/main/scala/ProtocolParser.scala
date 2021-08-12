@@ -25,10 +25,33 @@ object ProtocolParser extends RegexParsers {
     val commentLine: Parser[String] = """\s*///""".r ~> """[^\n]*""".r
     repVector(commentLine).filter(_.nonEmpty)
 
+  val fieldType: Parser[FieldType] = {
+    def mapPrimitive(typeName: String): Option[FieldType.Known] = {
+      typeName match {
+        case "u8" => Some("UByte")
+        case "i8" => Some("Byte")
+        case "u16" => Some("UShort")
+        case "i16" => Some("Short")
+        case "i32" => Some("Int")
+        case "i64" => Some("Long")
+        case "String" => Some("String")
+        case "VarInt" => Some("VarInt")
+        case "VarLong" => Some("VarLong")
+        case "UUID" => Some("UUID")
+        case "()" => Some("Unit")
+        case s: _ => None
+      }
+    }.map(FieldType.Known.apply)
+
+    """[^=]+(?= =)""".r.map { typeName =>
+      mapPrimitive(typeName).getOrElse(FieldType.Raw(typeName))
+    }
+  }
+
   val fieldDefinition: Parser[FieldDefinition] =
     for {
       fieldName <- """\s*field """.r ~> """\w+""".r
-      typeName <- literal(": ") ~> """[^=]+(?= =)""".r <~ literal(" =")
+      typeName <- literal(": ") ~> fieldType <~ literal(" =")
       conditionLambda <- opt {
         not(literal(",")) ~> literal(" when(") ~> """[^\)]+""".r <~ literal(")")
       }

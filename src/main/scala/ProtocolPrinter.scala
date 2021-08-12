@@ -24,9 +24,16 @@ object ProtocolPrinter {
   def indent(input: String): String = prefixNonemptyLinesWith("  ")(input)
 
   def showPacketDefinition(definition: PacketDefinitionSection.PacketDefinition): String =
+    def showFieldType(fieldType: FieldType): String = fieldType match {
+      case FieldType.Known(counterpart) => counterpart
+      case FieldType.Raw(raw) => s"RustType[$raw]"
+    }
+
     def showFieldDefinitionSection(fieldDefinitionSection: FieldDefinitionSection) = fieldDefinitionSection match {
-      case FieldDefinitionSection.FieldDefinition(name, typeName, Some(_)) => s"$name: Option[RustType[$typeName]],"
-      case FieldDefinitionSection.FieldDefinition(name, typeName, None) => s"$name: RustType[$typeName],"
+      case FieldDefinitionSection.FieldDefinition(name, fieldType, Some(_)) =>
+        s"$name: Option[${showFieldType(fieldType)}],"
+      case FieldDefinitionSection.FieldDefinition(name, fieldType, None) =>
+        s"$name: ${showFieldType(fieldType)},"
       case FieldDefinitionSection.FieldComment(lines) => showCommentLines(lines)
     }
 
