@@ -25,7 +25,7 @@ object ProtocolParser extends RegexParsers {
     val commentLine: Parser[String] = """\s*///""".r ~> """[^\n]*""".r
     repVector(commentLine).filter(_.nonEmpty)
 
-  val fieldType: Parser[FieldType] = {
+  def fieldType: Parser[FieldType] = {
     def mapPrimitive(typeName: String): Option[FieldType.Known] = {
       typeName match {
         case "u8" => Some("UByte")
@@ -43,9 +43,18 @@ object ProtocolParser extends RegexParsers {
       }
     }.map(FieldType.Known.apply)
 
-    """[^=]+(?= =)""".r.map { typeName =>
+    val plainType = """[^=,<>\s]+(?=,|\s|>)""".r.map { typeName =>
       mapPrimitive(typeName).getOrElse(FieldType.Raw(typeName))
     }
+
+    val wrappedType = for {
+      tyConsName <- """[^=,<>\s]+(?=<)""".r <~ literal("<")
+      first <- fieldType
+      rest <- repVector(""",\s?""".r ~> fieldType)
+      _ <- """\s?>""".r
+    } yield FieldType.AppliedType(tyConsName, rest.prepended(first))
+
+    plainType | wrappedType
   }
 
   val fieldDefinition: Parser[FieldDefinition] =

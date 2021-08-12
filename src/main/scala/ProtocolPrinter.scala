@@ -25,8 +25,12 @@ object ProtocolPrinter {
 
   def showPacketDefinition(definition: PacketDefinitionSection.PacketDefinition): String =
     def showFieldType(fieldType: FieldType): String = fieldType match {
-      case FieldType.Known(counterpart) => counterpart
-      case FieldType.Raw(raw) => s"RustType[$raw]"
+      case FieldType.Known(counterpart) =>
+        counterpart
+      case FieldType.AppliedType(typeConstructorName, types) =>
+        s"$typeConstructorName[${types.map(showFieldType).mkString(", ")}]"
+      case FieldType.Raw(raw) =>
+        s"RustType[$raw]"
     }
 
     def showFieldDefinitionSection(fieldDefinitionSection: FieldDefinitionSection) = fieldDefinitionSection match {

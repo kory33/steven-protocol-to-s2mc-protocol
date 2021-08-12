@@ -4,6 +4,7 @@ import cats.kernel.Monoid
 
 enum FieldType:
   case Known(counterpartName: String)
+  case AppliedType(typeConstructorName: String, args: Vector[FieldType])
   case Raw(raw: String)
 
 enum FieldDefinitionSection:
