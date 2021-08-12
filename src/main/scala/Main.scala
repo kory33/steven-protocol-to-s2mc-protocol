@@ -6,7 +6,7 @@ object Main {
   def processFileAt(protocolDefinitionFilePath: String): Unit = {
     val lines = fromFile(protocolDefinitionFilePath).getLines.mkString("\n")
 
-    println(ProtocolParser(lines))
+    println(ProtocolPrinter.show(ProtocolParser(lines)))
   }
 
   def main(args: Array[String]): Unit = {
