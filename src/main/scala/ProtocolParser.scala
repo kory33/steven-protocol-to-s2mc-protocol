@@ -68,6 +68,11 @@ object ProtocolParser extends RegexParsers {
 
       mappings.get(typeName).map(FieldType.Known.apply)
 
+    def convertTyConsName(raw: String): String = raw match {
+      case "Vec" => "Vector"
+      case _ => raw
+    }
+
     val plainType = """[^=,<>\s]+(?=,|\s|>)""".r.map { typeName =>
       mapPrimitive(typeName).getOrElse(FieldType.Raw(typeName))
     }
@@ -77,7 +82,7 @@ object ProtocolParser extends RegexParsers {
       first <- fieldType
       rest <- repVector(""",\s?""".r ~> fieldType)
       _ <- """\s?>""".r
-    } yield FieldType.AppliedType(tyConsName, rest.prepended(first))
+    } yield FieldType.AppliedType(convertTyConsName(tyConsName), rest.prepended(first))
 
     plainType | wrappedType
   }
