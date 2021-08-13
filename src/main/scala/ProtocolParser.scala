@@ -27,19 +27,50 @@ object ProtocolParser extends RegexParsers {
 
   def fieldType: Parser[FieldType] = {
     def mapPrimitive(typeName: String): Option[FieldType.Known] = {
+      val knownUnknowns = Set(
+        "Biomes3D",
+        "format::Component",
+        "item::Stack",
+        "nbt::NamedTag",
+        "packet::BlockChangeRecord",
+        "packet::ChunkMeta",
+        "packet::CommandNode",
+        "packet::EntityEquipments",
+        "packet::EntityProperty",
+        "packet::EntityProperty_i16",
+        "packet::ExplosionRecord",
+        "packet::MapIcon",
+        "packet::PlayerInfoData",
+        "packet::Recipe",
+        "packet::SpawnProperty",
+        "packet::Statistic",
+        "packet::Tags",
+        "packet::Trade",
+        "types::Metadata",
+      )
+
       typeName match {
+        case "()" => Some("Unit")
+        case "bool" => Some("Boolean")
         case "u8" => Some("UByte")
         case "i8" => Some("Byte")
         case "u16" => Some("UShort")
         case "i16" => Some("Short")
         case "i32" => Some("Int")
         case "i64" => Some("Long")
+        case "u64" => Some("ULong")
+        case "f32" => Some("Float")
+        case "f64" => Some("Double")
         case "String" => Some("String")
+        case "VarShort" => Some("VarShort")
         case "VarInt" => Some("VarInt")
         case "VarLong" => Some("VarLong")
         case "UUID" => Some("UUID")
-        case "()" => Some("Unit")
-        case s: _ => None
+        case "Position" => Some("Position")
+        case s: _ =>
+          if !knownUnknowns.contains(s) then
+            throw IllegalArgumentException(s"unknown type ${s}")
+          None
       }
     }.map(FieldType.Known.apply)
 

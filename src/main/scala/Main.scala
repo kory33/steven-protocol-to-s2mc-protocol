@@ -1,6 +1,6 @@
 package com.github.kory33.s2mctest.protocolconversion
 
-import scala.io.Source._
+import scala.io.Source.*
 
 object Main {
   def processFileAt(protocolDefinitionFilePath: String): Unit = {
