@@ -26,53 +26,47 @@ object ProtocolParser extends RegexParsers {
     repVector(commentLine).filter(_.nonEmpty)
 
   def fieldType: Parser[FieldType] = {
-    def mapPrimitive(typeName: String): Option[FieldType.Known] = {
-      val knownUnknowns = Set(
-        "Biomes3D",
-        "format::Component",
-        "item::Stack",
-        "nbt::NamedTag",
-        "packet::BlockChangeRecord",
-        "packet::ChunkMeta",
-        "packet::CommandNode",
-        "packet::EntityEquipments",
-        "packet::EntityProperty",
-        "packet::EntityProperty_i16",
-        "packet::ExplosionRecord",
-        "packet::MapIcon",
-        "packet::PlayerInfoData",
-        "packet::Recipe",
-        "packet::SpawnProperty",
-        "packet::Statistic",
-        "packet::Tags",
-        "packet::Trade",
-        "types::Metadata",
+    def mapPrimitive(typeName: String): Option[FieldType.Known] =
+      val mappings = Map(
+        "()" -> "Unit",
+        "bool" -> "Boolean",
+        "u8" -> "UByte",
+        "i8" -> "Byte",
+        "u16" -> "UShort",
+        "i16" -> "Short",
+        "i32" -> "Int",
+        "i64" -> "Long",
+        "u64" -> "ULong",
+        "f32" -> "Float",
+        "f64" -> "Double",
+        "String" -> "String",
+        "VarShort" -> "VarShort",
+        "VarInt" -> "VarInt",
+        "VarLong" -> "VarLong",
+        "UUID" -> "UUID",
+        "Position" -> "Position",
+        "Biomes3D" -> "Biomes3D",
+        "format::Component" -> "format.Component",
+        "item::Stack" -> "item.Stack",
+        "nbt::NamedTag" -> "nbt.NamedTag",
+        "packet::BlockChangeRecord" -> "packet.BlockChangeRecord",
+        "packet::ChunkMeta" -> "packet.ChunkMeta",
+        "packet::CommandNode" -> "packet.CommandNode",
+        "packet::EntityEquipments" -> "packet.EntityEquipments",
+        "packet::EntityProperty" -> "packet.EntityProperty",
+        "packet::EntityProperty_i16" -> "packet.EntityProperty_i16",
+        "packet::ExplosionRecord" -> "packet.ExplosionRecord",
+        "packet::MapIcon" -> "packet.MapIcon",
+        "packet::PlayerInfoData" -> "packet.PlayerInfoData",
+        "packet::Recipe" -> "packet.Recipe",
+        "packet::SpawnProperty" -> "packet.SpawnProperty",
+        "packet::Statistic" -> "packet.Statistic",
+        "packet::Tags" -> "packet.Tags",
+        "packet::Trade" -> "packet.Trade",
+        "types::Metadata" -> "types.Metadata",
       )
 
-      typeName match {
-        case "()" => Some("Unit")
-        case "bool" => Some("Boolean")
-        case "u8" => Some("UByte")
-        case "i8" => Some("Byte")
-        case "u16" => Some("UShort")
-        case "i16" => Some("Short")
-        case "i32" => Some("Int")
-        case "i64" => Some("Long")
-        case "u64" => Some("ULong")
-        case "f32" => Some("Float")
-        case "f64" => Some("Double")
-        case "String" => Some("String")
-        case "VarShort" => Some("VarShort")
-        case "VarInt" => Some("VarInt")
-        case "VarLong" => Some("VarLong")
-        case "UUID" => Some("UUID")
-        case "Position" => Some("Position")
-        case s: _ =>
-          if !knownUnknowns.contains(s) then
-            throw IllegalArgumentException(s"unknown type ${s}")
-          None
-      }
-    }.map(FieldType.Known.apply)
+      mappings.get(typeName).map(FieldType.Known.apply)
 
     val plainType = """[^=,<>\s]+(?=,|\s|>)""".r.map { typeName =>
       mapPrimitive(typeName).getOrElse(FieldType.Raw(typeName))
