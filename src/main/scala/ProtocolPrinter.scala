@@ -44,7 +44,7 @@ object ProtocolPrinter {
     val PacketDefinitionSection.PacketDefinition(packetName, fDefSections) = definition
 
     val classDeclInitiator = s"case class $packetName"
-    val fieldDeclIndentation = repString(classDeclInitiator.length)(" ")
+    val declInitiatorSpace = repString(classDeclInitiator.length)(" ")
 
     val requirements = {
       val requireLines = fDefSections.flatMap {
@@ -65,9 +65,9 @@ object ProtocolPrinter {
 
     s"$classDeclInitiator(\n" + {
       fDefSections.map { s =>
-        prefixNonemptyLinesWith(s"$fieldDeclIndentation ")(showFieldDefinitionSection(s))
+        prefixNonemptyLinesWith(s"$declInitiatorSpace  ")(showFieldDefinitionSection(s))
       }.mkString("", "\n", "\n")
-    } + s"$fieldDeclIndentation) extends PacketIntent${requirements}\n"
+    } + s"$declInitiatorSpace) extends PacketIntent${requirements}\n"
 
   def show(protocol: ProtocolDefinition): String =
     val stateDefinitions = protocol.definitions
