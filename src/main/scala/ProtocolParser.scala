@@ -115,7 +115,7 @@ object ProtocolParser extends RegexParsers {
 
   val packetTarget: Parser[PacketTarget] =
     literal("serverbound Serverbound").map(_ => ServerBound) |
-    literal("clientbound Clientbound").map(_ => ServerBound)
+    literal("clientbound Clientbound").map(_ => ClientBound)
 
   val targetDefinition: Parser[TargetDefinition] =
     val mappedCommentParser = aggregatedComment.map(PacketComment(_))
