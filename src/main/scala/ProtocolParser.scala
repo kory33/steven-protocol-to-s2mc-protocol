@@ -87,12 +87,20 @@ object ProtocolParser extends RegexParsers {
     plainType | wrappedType
   }
 
+  val convertedLambdaBody = for {
+    lambdaArg <- literal("|") ~> """\w+""".r <~ """: ?&?\w+\| ?""".r
+    lambdaBody <- """[^\)]+""".r
+  } yield {
+    // need to remove "p."
+    lambdaBody.replaceFirst("""(?<!\w)""" + lambdaArg + """\.""".r, "")
+  }
+
   val fieldDefinition: Parser[FieldDefinition] =
     for {
       fieldName <- """\s*field """.r ~> """\w+""".r
       typeName <- literal(": ") ~> fieldType <~ literal(" =")
       conditionLambda <- opt {
-        not(literal(",")) ~> literal(" when(") ~> """[^\)]+""".r <~ literal(")")
+        not(literal(",")) ~> literal(" when(") ~> convertedLambdaBody <~ literal(")")
       }
       _ <- literal(",")
     } yield FieldDefinition(fieldName, typeName, conditionLambda)

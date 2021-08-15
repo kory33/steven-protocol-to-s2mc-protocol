@@ -9,7 +9,7 @@ enum FieldType:
 
 enum FieldDefinitionSection:
   case FieldComment(lines: Vector[String])
-  case FieldDefinition(fieldName: String, typeName: FieldType, fieldConditionLambda: Option[String])
+  case FieldDefinition(fieldName: String, typeName: FieldType, fieldCondition: Option[String])
 
 enum PacketDefinitionSection:
   case PacketComment(lines: Vector[String])
