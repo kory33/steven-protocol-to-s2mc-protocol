@@ -72,8 +72,7 @@ object ProtocolPrinter {
   def show(protocol: ProtocolDefinition): String =
     val stateDefinitions = protocol.definitions
 
-    indent {
-      stateDefinitions.map { case StateDefinition(state, targets) =>
+    "object PacketIntent {\n" + indent { stateDefinitions.map { case StateDefinition(state, targets) =>
         s"object $state {\n" + indent(targets.map { case TargetDefinition(target, tDefSections) =>
           s"object $target {\n" + indent(tDefSections.map {
             case PacketDefinitionSection.PacketComment(lines) =>
@@ -83,5 +82,5 @@ object ProtocolPrinter {
           }.mkString("\n")) + s"}\n"
         }.mkString) + s"}\n"
       }.mkString
-    }
+    } + s"}\n"
 }
