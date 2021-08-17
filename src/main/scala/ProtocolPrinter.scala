@@ -1,5 +1,6 @@
 package com.github.kory33.s2mctest.protocolconversion
 
+import definition.*
 import ProtocolPrinter.indent
 
 object ProtocolPrinter {

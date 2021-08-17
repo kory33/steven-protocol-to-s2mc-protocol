@@ -1,8 +1,9 @@
 package com.github.kory33.s2mctest.protocolconversion
 
-import com.github.kory33.s2mctest.protocolconversion.FieldDefinitionSection.*
-import com.github.kory33.s2mctest.protocolconversion.PacketDefinitionSection.*
-import com.github.kory33.s2mctest.protocolconversion.PacketTarget.*
+import definition.*
+import definition.FieldDefinitionSection.*
+import definition.PacketDefinitionSection.*
+import definition.PacketTarget.*
 
 import scala.util.parsing.combinator.RegexParsers
 
@@ -124,7 +125,7 @@ object ProtocolParser extends RegexParsers {
     }
 
   val connectionState: Parser[ConnectionState] =
-    import ConnectionState._
+    import com.github.kory33.s2mctest.protocolconversion.definition.ConnectionState._
 
     val List(handshaking, status, login, play) = List(
       "Handshaking" -> Handshaking,

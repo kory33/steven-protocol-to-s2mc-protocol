@@ -1,4 +1,5 @@
 package com.github.kory33.s2mctest.protocolconversion
+package definition
 
 import cats.kernel.Monoid
 
