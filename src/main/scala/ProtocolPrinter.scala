@@ -68,7 +68,7 @@ object ProtocolPrinter {
       fDefSections.map { s =>
         prefixNonemptyLinesWith(s"$declInitiatorSpace  ")(showFieldDefinitionSection(s))
       }.mkString("", "\n", "\n")
-    } + s"$declInitiatorSpace) extends PacketIntent${requirements}\n"
+    } + s"$declInitiatorSpace)${requirements}\n"
 
   def show(protocol: ProtocolDefinition): String =
     val stateDefinitions = protocol.definitions
