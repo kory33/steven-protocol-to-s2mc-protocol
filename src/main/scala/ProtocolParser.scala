@@ -27,63 +27,14 @@ object ProtocolParser extends RegexParsers {
     repVector(commentLine).filter(_.nonEmpty)
 
   def fieldType: Parser[FieldType] = {
-    def mapPrimitive(typeName: String): Option[FieldType.Known] =
-      val mappings = Map(
-        "()" -> "Unit",
-        "bool" -> "Boolean",
-        "u8" -> "UByte",
-        "i8" -> "Byte",
-        "u16" -> "UShort",
-        "i16" -> "Short",
-        "i32" -> "Int",
-        "i64" -> "Long",
-        "u64" -> "ULong",
-        "f32" -> "Float",
-        "f64" -> "Double",
-        "String" -> "String",
-        "VarShort" -> "VarShort",
-        "VarInt" -> "VarInt",
-        "VarLong" -> "VarLong",
-        "UUID" -> "UUID",
-        "Position" -> "Position",
-        "Biomes3D" -> "Biomes3D",
-        "format::Component" -> "Component",
-        "item::Stack" -> "Stack",
-        "nbt::NamedTag" -> "NamedTag",
-        "packet::BlockChangeRecord" -> "BlockChangeRecord",
-        "packet::ChunkMeta" -> "ChunkMeta",
-        "packet::CommandNode" -> "CommandNode",
-        "packet::EntityEquipments" -> "EntityEquipments",
-        "packet::EntityProperty" -> "EntityProperty",
-        "packet::EntityProperty_i16" -> "EntityPropertyShort",
-        "packet::ExplosionRecord" -> "ExplosionRecord",
-        "packet::MapIcon" -> "MapIcon",
-        "packet::PlayerInfoData" -> "PlayerInfoData",
-        "packet::Recipe" -> "Recipe",
-        "packet::SpawnProperty" -> "SpawnProperty",
-        "packet::Statistic" -> "Statistic",
-        "packet::Tags" -> "Tags",
-        "packet::Trade" -> "Trade",
-        "types::Metadata" -> "Metadata",
-      )
-
-      mappings.get(typeName).map(FieldType.Known.apply)
-
-    def convertTyConsName(raw: String): String = raw match {
-      case "Vec" => "Vector"
-      case _ => raw
-    }
-
-    val plainType = """[^=,<>\s]+(?=,|\s|>)""".r.map { typeName =>
-      mapPrimitive(typeName).getOrElse(FieldType.Raw(typeName))
-    }
+    val plainType = """[^=,<>\s]+(?=,|\s|>)""".r.map(FieldType.Raw(_))
 
     val wrappedType = for {
       tyConsName <- """[^=,<>\s]+(?=<)""".r <~ literal("<")
       first <- fieldType
       rest <- repVector(""",\s?""".r ~> fieldType)
       _ <- """\s?>""".r
-    } yield FieldType.AppliedType(convertTyConsName(tyConsName), rest.prepended(first))
+    } yield FieldType.AppliedType(tyConsName, rest.prepended(first))
 
     plainType | wrappedType
   }
@@ -93,7 +44,7 @@ object ProtocolParser extends RegexParsers {
     lambdaBody <- """[^\)]+""".r
   } yield {
     // need to remove "p."
-    lambdaBody.replaceFirst("""(?<!\w)""" + lambdaArg + """\.""".r, "")
+    lambdaBody.replaceAll("""(?<!\w)""" + lambdaArg + """\.""".r, "")
   }
 
   val fieldDefinition: Parser[FieldDefinition] =
