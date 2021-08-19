@@ -22,6 +22,11 @@ object DefinitionConverter {
         GenPrism[FieldDefinitionSection, FieldDefinition]
       }
 
+    val fieldNameTraversal: Traversal[PacketDefinition, String] =
+      fieldDefinitionTraversal.andThen {
+        GenLens[FieldDefinition](_.fieldName)
+      }
+
     val typeTraversal: Traversal[PacketDefinition, FieldType] =
       fieldDefinitionTraversal.andThen {
         GenLens[FieldDefinition](_.typeName)
@@ -88,6 +93,18 @@ object DefinitionConverter {
       }
     }
 
+    def rewriteFieldNames(fieldName: String): String = {
+      def snakeCaseToLowerCamelCase(input: String): String = {
+        val underscores = """_([a-z0-9])""".r
+        underscores.replaceAllIn(input, m => m.group(1).toUpperCase)
+      }
+
+      fieldName match {
+        case "new" => "isNew" // used for ChunkData_Biomes3D
+        case s => snakeCaseToLowerCamelCase(s)
+      }
+    }
+
     def rewriteComparisonWithVarInts(lambdaBody: String, varIntField: String): String = {
       lambdaBody.replaceAll(
         """(""" + Regex.quote(varIntField) + """)\.0 == (\d+)""",
@@ -104,6 +121,7 @@ object DefinitionConverter {
 
     pd
       .pipe(typeTraversal.modify(refineTypes))
+      .pipe(fieldNameTraversal.modify(rewriteFieldNames))
       .pipe { pd =>
         val varIntFields =
           fieldDefinitionTraversal
