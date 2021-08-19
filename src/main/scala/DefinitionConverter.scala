@@ -121,42 +121,47 @@ object DefinitionConverter {
         .pipe(conditionBodyTraversal.modify(conversions.foldLeft(_)(rewriteConditionBody)))
     }
 
-    def rewriteComparisonWithVarInts(lambdaBody: String, varIntField: String): String = {
-      lambdaBody.replaceAll(
-        """(""" + Regex.quote(varIntField) + """)\.0 == (\d+)""",
-        """$1 == VarInt($2)"""
-      )
+    def rewriteComparisonWithVarInts(packetDefinition: PacketDefinition): PacketDefinition = {
+      def rewriteLambdaBody(lambdaBody: String, varIntField: String): String = {
+        lambdaBody.replaceAll(
+          """(""" + Regex.quote(varIntField) + """)\.0 == (\d+)""",
+          """$1 == VarInt($2)"""
+        )
+      }
+
+      val varIntFields =
+        fieldDefinitionTraversal
+          .filter(_.typeName == FieldType.Known("VarInt"))
+          .getAll(packetDefinition)
+          .map(_.fieldName)
+
+      conditionBodyTraversal.modify(varIntFields.foldLeft(_)(rewriteLambdaBody))(packetDefinition)
     }
 
-    def rewriteComparisonWithVarLongs(lambdaBody: String, varLongField: String): String = {
-      lambdaBody.replaceAll(
-        """(""" + Regex.quote(varLongField) + """)\.0 == (\d+)""",
-        """$1 == VarLong($2)"""
-      )
+    def rewriteComparisonWithVarLongs(packetDefinition: PacketDefinition): PacketDefinition = {
+      def rewriteLambdaBody(lambdaBody: String, varLongField: String): String = {
+        lambdaBody.replaceAll(
+          """(""" + Regex.quote(varLongField) + """)\.0 == (\d+)""",
+          """$1 == VarLong($2)"""
+        )
+      }
+
+      val varLongFields =
+        fieldDefinitionTraversal
+          .filter(_.typeName == FieldType.Known("VarLong"))
+          .getAll(packetDefinition)
+          .map(_.fieldName)
+      conditionBodyTraversal.modify(varLongFields.foldLeft(_)(rewriteLambdaBody))(packetDefinition)
     }
 
     pd
       .pipe(typeTraversal.modify(refineTypes))
       .pipe(rewriteFieldNames)
-      .pipe { pd =>
-        val varIntFields =
-          fieldDefinitionTraversal
-            .filter(_.typeName == FieldType.Known("VarInt"))
-            .getAll(pd)
-            .map(_.fieldName)
-        conditionBodyTraversal.modify(varIntFields.foldLeft(_)(rewriteComparisonWithVarInts))(pd)
-      }
-      .pipe { pd =>
-        val varLongFields =
-          fieldDefinitionTraversal
-            .filter(_.typeName == FieldType.Known("VarLong"))
-            .getAll(pd)
-            .map(_.fieldName)
-        conditionBodyTraversal.modify(varLongFields.foldLeft(_)(rewriteComparisonWithVarLongs))(pd)
-      }
+      .pipe(rewriteComparisonWithVarInts)
+      .pipe(rewriteComparisonWithVarLongs)
 
   def convert(definition: ProtocolDefinition): ProtocolDefinition =
-    val packetDefinitionTraversal =
+    val packetDefinitionTraversal: Traversal[ProtocolDefinition, PacketDefinition] =
       GenLens[ProtocolDefinition](_.definitions.each.definitions.each.sections.each).andThen {
         GenPrism[PacketDefinitionSection, PacketDefinition]
       }
