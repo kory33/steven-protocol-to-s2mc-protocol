@@ -154,11 +154,40 @@ object DefinitionConverter {
       conditionBodyTraversal.modify(varLongFields.foldLeft(_)(rewriteLambdaBody))(packetDefinition)
     }
 
+    def rewriteComparisonWithUbytes(packetDefinition: PacketDefinition): PacketDefinition = {
+      def rewriteLambdaBody(lambdaBody: String, varLongField: String): String = {
+        lambdaBody
+          // comparison with literals
+          .replaceAll(
+            """(""" + Regex.quote(varLongField) + """) (==|!=) (\d+)""",
+            """$1 $2 UByte($3)"""
+          )
+          // nonzero test
+          .replaceAll(
+            """(""" + Regex.quote(varLongField) + """) \> 0""",
+            """$1 != UByte(0)"""
+          )
+          // bits up test
+          .replaceAll(
+            """(""" + Regex.quote(varLongField) + """) & (0x[0-9a-f]+) != 0""",
+            """($1 & $2) != UByte(0)"""
+          )
+      }
+
+      val uByteFields =
+        fieldDefinitionTraversal
+          .filter(_.typeName == FieldType.Known("UByte"))
+          .getAll(packetDefinition)
+          .map(_.fieldName)
+      conditionBodyTraversal.modify(uByteFields.foldLeft(_)(rewriteLambdaBody))(packetDefinition)
+    }
+
     pd
       .pipe(typeTraversal.modify(refineTypes))
       .pipe(rewriteFieldNames)
       .pipe(rewriteComparisonWithVarInts)
       .pipe(rewriteComparisonWithVarLongs)
+      .pipe(rewriteComparisonWithUbytes)
 
   def convert(definition: ProtocolDefinition): ProtocolDefinition =
     val packetDefinitionTraversal: Traversal[ProtocolDefinition, PacketDefinition] =
