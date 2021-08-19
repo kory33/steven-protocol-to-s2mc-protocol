@@ -93,16 +93,32 @@ object DefinitionConverter {
       }
     }
 
-    def rewriteFieldNames(fieldName: String): String = {
-      def snakeCaseToLowerCamelCase(input: String): String = {
-        val underscores = """_([a-z0-9])""".r
-        underscores.replaceAllIn(input, m => m.group(1).toUpperCase)
+    def rewriteFieldNames(packetDefinition: PacketDefinition): PacketDefinition = {
+      case class FieldNameConversion(old: String, replaced: String)
+
+      def fieldNameConversion(fieldName: String) = {
+        def snakeCaseToLowerCamelCase(input: String): String = {
+          val underscores = """_([a-z0-9])""".r
+          underscores.replaceAllIn(input, m => m.group(1).toUpperCase)
+        }
+
+        fieldName match {
+          case "new" => "isNew" // used for ChunkData_Biomes3D
+          case s => snakeCaseToLowerCamelCase(s)
+        }
       }
 
-      fieldName match {
-        case "new" => "isNew" // used for ChunkData_Biomes3D
-        case s => snakeCaseToLowerCamelCase(s)
-      }
+      def rewriteConditionBody(old: String, conversion: FieldNameConversion): String =
+        old.replaceAll(conversion.old, conversion.replaced)
+
+      val conversions =
+        fieldNameTraversal
+          .getAll(packetDefinition)
+          .map(fieldName => FieldNameConversion(fieldName, fieldNameConversion(fieldName)))
+
+      packetDefinition
+        .pipe(fieldNameTraversal.modify(fieldNameConversion))
+        .pipe(conditionBodyTraversal.modify(conversions.foldLeft(_)(rewriteConditionBody)))
     }
 
     def rewriteComparisonWithVarInts(lambdaBody: String, varIntField: String): String = {
@@ -121,7 +137,7 @@ object DefinitionConverter {
 
     pd
       .pipe(typeTraversal.modify(refineTypes))
-      .pipe(fieldNameTraversal.modify(rewriteFieldNames))
+      .pipe(rewriteFieldNames)
       .pipe { pd =>
         val varIntFields =
           fieldDefinitionTraversal
