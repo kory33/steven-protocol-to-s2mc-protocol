@@ -1,9 +1,12 @@
 package com.github.kory33.s2mctest.protocolconversion
+package packetintents
 
-import definition.*
-import definition.FieldDefinitionSection.*
-import definition.PacketDefinitionSection.*
-import definition.PacketTarget.*
+import packetintents.definition.*
+
+import FieldDefinitionSection.*
+import FieldType.*
+import PacketDefinitionSection.*
+import PacketTarget.*
 
 import scala.util.parsing.combinator.RegexParsers
 
@@ -15,8 +18,8 @@ object ProtocolParser extends RegexParsers {
   def bracketedList[I, C](initiator: Parser[I], content: Parser[C]): Parser[(I, C)] =
     for {
       init <- """\s*""".r ~> initiator <~ """\s*\{""".r
-      c    <-   content
-      _    <- """\s*\}""".r
+      c <- content
+      _ <- """\s*\}""".r
     } yield (init, c)
 
   def repVector[T](parser: Parser[T]): Parser[Vector[T]] = rep(parser).map(_.toVector)
@@ -62,12 +65,12 @@ object ProtocolParser extends RegexParsers {
   val packetDefinition: Parser[PacketDefinition] =
     val mappedCommentParser = aggregatedComment.map(FieldComment(_))
     bracketedList(packetName, repVector(mappedCommentParser | fieldDefinition)).map {
-      case(packetName, sections) => PacketDefinition(packetName, sections)
+      case (packetName, sections) => PacketDefinition(packetName, sections)
     }
 
   val packetTarget: Parser[PacketTarget] =
     literal("serverbound Serverbound").map(_ => ServerBound) |
-    literal("clientbound Clientbound").map(_ => ClientBound)
+      literal("clientbound Clientbound").map(_ => ClientBound)
 
   val targetDefinition: Parser[TargetDefinition] =
     val mappedCommentParser = aggregatedComment.map(PacketComment(_))
@@ -76,7 +79,7 @@ object ProtocolParser extends RegexParsers {
     }
 
   val connectionState: Parser[ConnectionState] =
-    import com.github.kory33.s2mctest.protocolconversion.definition.ConnectionState._
+    import packetintents.definition.ConnectionState.*
 
     val List(handshaking, status, login, play) = List(
       "Handshaking" -> Handshaking,
@@ -99,6 +102,6 @@ object ProtocolParser extends RegexParsers {
 
   def apply(input: String): ProtocolDefinition = parseAll(wholeProtocol, input) match {
     case Success(result, _) => result
-    case failure : NoSuccess => scala.sys.error(failure.msg)
+    case failure: NoSuccess => scala.sys.error(failure.msg)
   }
 }

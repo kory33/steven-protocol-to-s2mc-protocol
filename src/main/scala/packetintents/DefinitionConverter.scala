@@ -1,21 +1,23 @@
 package com.github.kory33.s2mctest.protocolconversion
+package packetintents
 
-import definition.{FieldDefinitionSection, FieldType, PacketDefinitionSection, ProtocolDefinition}
+import packetintents.definition.*
 
-import monocle.law.TraversalLaws
+import FieldDefinitionSection.*
+import FieldType.*
+import PacketDefinitionSection.*
+import PacketTarget.*
+
+import monocle.Traversal
 import monocle.macros.{GenLens, GenPrism}
-import monocle.{Iso, Optional, PIso, Prism, Traversal}
 
 import scala.util.matching.Regex
 
 object DefinitionConverter {
-  import monocle.syntax.all._
+
   import scala.util.chaining.given
 
-  import PacketDefinitionSection.PacketDefinition
-
   def convertPacketDefinition(pd: PacketDefinition): PacketDefinition =
-    import FieldDefinitionSection.FieldDefinition
 
     val fieldDefinitionTraversal: Traversal[PacketDefinition, FieldDefinition] =
       GenLens[PacketDefinition](_.sections.each).andThen {

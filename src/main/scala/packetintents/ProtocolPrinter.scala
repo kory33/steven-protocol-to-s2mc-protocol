@@ -1,7 +1,9 @@
 package com.github.kory33.s2mctest.protocolconversion
+package packetintents
 
-import definition.*
-import ProtocolPrinter.indent
+import packetintents.definition.*
+
+import packetintents.definition.FieldType
 
 object ProtocolPrinter {
   def showCommentLines(lines: Vector[String]): String =
@@ -18,7 +20,7 @@ object ProtocolPrinter {
 
   def prefixNonemptyLinesWith(string: String)(lines: String): String =
     lines
-      .split("\n", -1)  // don't discard trailing lines
+      .split("\n", -1) // don't discard trailing lines
       .map(l => if l.isEmpty then l else string + l)
       .mkString("\n")
 
@@ -73,12 +75,13 @@ object ProtocolPrinter {
   def show(protocol: ProtocolDefinition): String =
     val stateDefinitions = protocol.definitions
 
-    "object PacketIntent {\n" + indent { stateDefinitions.map { case StateDefinition(state, targets) =>
+    "object PacketIntent {\n" + indent {
+      stateDefinitions.map { case StateDefinition(state, targets) =>
         s"object $state {\n" + indent(targets.map { case TargetDefinition(target, tDefSections) =>
           s"object $target {\n" + indent(tDefSections.map {
             case PacketDefinitionSection.PacketComment(lines) =>
               showCommentLines(lines) // no trailing line break
-            case d @ PacketDefinitionSection.PacketDefinition(_, _) =>
+            case d@PacketDefinitionSection.PacketDefinition(_, _) =>
               showPacketDefinition(d)
           }.mkString("\n")) + s"}\n"
         }.mkString) + s"}\n"

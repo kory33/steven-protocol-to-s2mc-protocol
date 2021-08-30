@@ -1,5 +1,5 @@
 package com.github.kory33.s2mctest.protocolconversion
-package definition
+package packetintents.definition
 
 import cats.kernel.Monoid
 
